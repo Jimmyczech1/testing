@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Tipovačka MS 2026</title>
+<style>
+:root {
+  --green-dark:  #0a4a2a;
+  --green-mid:   #1a7a42;
+  --green-light: #e8f5ee;
+  --gold:   #f4b942;
+  --silver: #9eaab5;
+  --bronze: #c47c3e;
+  --bg:      #f4f6f5;
+  --surface: #ffffff;
+  --border:  #e0e6e2;
+  --text:    #111c16;
+  --muted:   #607068;
+  --radius-sm: 6px; --radius-md: 10px; --radius-lg: 16px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.08);
+  --shadow-md: 0 4px 16px rgba(0,0,0,.10);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.5; }
+a { color: inherit; text-decoration: none; }
+
+.site-header { background: var(--green-dark); color: #fff; padding: 1rem 1.5rem; display: flex; align-items: center; gap: 1rem; }
+.site-header img { height: 52px; width: auto; flex-shrink: 0; }
+.site-header h1 { font-size: 1.2rem; font-weight: 700; }
+.site-header p  { font-size: .8rem; opacity: .7; margin-top: 2px; }
+
+.status-bar { background: var(--green-mid); color: #fff; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .5rem; padding: .5rem 1.5rem; font-size: .82rem; }
+.status-item { display: flex; align-items: center; gap: .35rem; }
+.btn-refresh { background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.35); color: #fff; padding: .3rem .9rem; border-radius: var(--radius-sm); cursor: pointer; font-size: .82rem; font-weight: 500; transition: background .15s; }
+.btn-refresh:hover:not(:disabled) { background: rgba(255,255,255,.28); }
+.btn-refresh:disabled { opacity: .5; cursor: not-allowed; }
+
+.tab-nav { background: var(--surface); border-bottom: 2px solid var(--border); display: flex; overflow-x: auto; scrollbar-width: none; }
+.tab-nav::-webkit-scrollbar { display: none; }
+.tab-btn { background: none; border: none; border-bottom: 3px solid transparent; margin-bottom: -2px; padding: .85rem 1.4rem; font-size: .9rem; font-weight: 500; color: var(--muted); cursor: pointer; white-space: nowrap; transition: color .15s, border-color .15s; display: flex; align-items: center; gap: .4rem; }
+.tab-btn:hover { color: var(--green-dark); }
+.tab-btn.active { color: var(--green-dark); border-bottom-color: var(--green-dark); background: var(--green-light); }
+
+.container { max-width: 1040px; margin: 0 auto; padding: 1.5rem 1rem; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+.section-title { font-size: 1.1rem; font-weight: 700; color: var(--green-dark); margin-bottom: 1.2rem; display: flex; align-items: center; gap: .5rem; }
+
+/* PODIUM */
+.podium { display: flex; align-items: flex-end; justify-content: center; gap: .75rem; margin-bottom: 2rem; }
+.podium-card { background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); padding: 1.25rem 1rem 1rem; text-align: center; flex: 1; max-width: 240px; border-top: 4px solid var(--border); }
+.podium-card.rank-1 { border-top-color: var(--gold); transform: translateY(-12px); }
+.podium-card.rank-2 { border-top-color: var(--silver); }
+.podium-card.rank-3 { border-top-color: var(--bronze); }
+.podium-medal { font-size: 2rem; line-height: 1; margin-bottom: .4rem; }
+.podium-name  { font-weight: 700; font-size: 1rem; margin-bottom: .5rem; word-break: break-word; }
+.podium-points { font-size: 2rem; font-weight: 800; color: var(--green-dark); line-height: 1; }
+.podium-points-label { font-size: .72rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-top: 2px; }
+.podium-exact { margin-top: .6rem; font-size: .8rem; color: var(--muted); background: var(--green-light); border-radius: 20px; padding: 2px 10px; display: inline-block; }
+
+/* LEADERBOARD TABLE */
+.leaderboard-table { width: 100%; border-collapse: collapse; background: var(--surface); border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow-sm); }
+.leaderboard-table thead th { background: var(--green-dark); color: #fff; font-weight: 600; font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; padding: .65rem 1rem; text-align: left; }
+.leaderboard-table thead th:last-child, .leaderboard-table tbody td:last-child { text-align: right; padding-right: 1.2rem; }
+.leaderboard-table tbody tr { border-bottom: 1px solid var(--border); }
+.leaderboard-table tbody tr:last-child { border-bottom: none; }
+.leaderboard-table tbody tr:hover { background: var(--green-light); }
+.leaderboard-table tbody td { padding: .7rem 1rem; font-size: .9rem; }
+.lb-rank { font-weight: 700; color: var(--muted); width: 3rem; }
+.lb-name { font-weight: 500; }
+.lb-pts  { font-weight: 700; font-size: 1rem; color: var(--green-dark); }
+
+/* TIPS */
+.tips-controls { display: flex; align-items: center; flex-wrap: wrap; gap: .6rem; margin-bottom: 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: .8rem 1rem; }
+.tips-controls label { font-size: .85rem; color: var(--muted); font-weight: 500; }
+.tips-controls select { padding: .35rem .7rem; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: .88rem; background: var(--bg); color: var(--text); cursor: pointer; }
+.btn { padding: .38rem .9rem; border-radius: var(--radius-sm); border: 1px solid var(--green-mid); background: var(--green-mid); color: #fff; font-size: .88rem; font-weight: 500; cursor: pointer; transition: background .15s; }
+.btn:hover { background: var(--green-dark); border-color: var(--green-dark); }
+.btn-secondary { background: var(--surface); color: var(--green-mid); }
+.btn-secondary:hover { background: var(--green-light); }
+
+/* STICKY TABLE — overflow:auto na OBOU osách je kritické */
+.table-scroll-wrapper { overflow: auto; max-height: 70vh; border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); }
+#tipsTable { width: 100%; border-collapse: collapse; font-size: .85rem; background: var(--surface); }
+#tipsTable thead th { position: sticky; top: 0; z-index: 100; background: var(--green-dark); color: #fff; font-weight: 600; font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; padding: .6rem .75rem; white-space: nowrap; text-align: center; border-right: 1px solid rgba(255,255,255,.1); }
+#tipsTable tbody td { padding: .5rem .75rem; text-align: center; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); }
+#tipsTable tbody tr:last-child td { border-bottom: none; }
+#tipsTable tbody tr:hover td { filter: brightness(.96); }
+#tipsTable th:first-child, #tipsTable td:first-child { position: sticky; left: 0; z-index: 99; background: var(--surface); min-width: 190px; text-align: left; font-weight: 500; }
+#tipsTable th:nth-child(2), #tipsTable td:nth-child(2) { position: sticky; left: 190px; z-index: 98; background: var(--surface); min-width: 110px; box-shadow: 2px 0 5px rgba(0,0,0,.07); }
+#tipsTable thead th:first-child  { z-index: 102; background: var(--green-dark); }
+#tipsTable thead th:nth-child(2) { z-index: 101; background: var(--green-dark); box-shadow: 2px 0 5px rgba(0,0,0,.15); }
+.cell-exact    { background: #d4edda !important; color: #155724; font-weight: 600; }
+.cell-correct  { background: #fff3cd !important; color: #856404; }
+.cell-wrong    { background: #f8d7da !important; color: #721c24; }
+.cell-unplayed { background: var(--bg) !important; color: var(--muted); }
+
+/* CHAMPION CARDS */
+.champion-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
+.champion-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); overflow: hidden; }
+.champion-card-header { display: flex; align-items: center; justify-content: space-between; background: var(--green-dark); color: #fff; padding: .7rem 1rem; }
+.champion-team  { font-weight: 700; font-size: 1rem; }
+.champion-votes { background: rgba(255,255,255,.2); border-radius: 20px; padding: 2px 10px; font-size: .8rem; font-weight: 600; }
+.champion-card-body  { padding: .75rem 1rem; }
+.champion-players    { font-size: .83rem; color: var(--muted); margin-bottom: .75rem; line-height: 1.6; }
+.champion-matches    { display: flex; flex-direction: column; gap: 4px; }
+.match-row-mini      { display: flex; align-items: center; justify-content: space-between; font-size: .8rem; padding: 3px 6px; border-radius: var(--radius-sm); background: var(--bg); }
+.match-row-mini .teams { flex: 1; }
+.match-row-mini .score { font-weight: 700; min-width: 40px; text-align: center; border-radius: 4px; padding: 1px 6px; font-size: .78rem; }
+.score-win  { background: #d4edda; color: #155724; }
+.score-draw { background: #fff3cd; color: #856404; }
+.score-loss { background: #f8d7da; color: #721c24; }
+.score-tbd  { background: var(--border); color: var(--muted); }
+
+/* STATS */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); padding: 1rem 1.2rem; }
+.stat-card-label { font-size: .75rem; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 600; margin-bottom: .4rem; }
+.stat-card-value { font-size: 1.7rem; font-weight: 800; color: var(--green-dark); line-height: 1.1; }
+.stat-card-sub   { font-size: .82rem; color: var(--muted); margin-top: .2rem; }
+.stats-table-wrap  { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); overflow: hidden; margin-bottom: 1.2rem; }
+.stats-table-title { padding: .7rem 1rem; font-weight: 700; font-size: .88rem; background: var(--green-dark); color: #fff; }
+.stats-table { width: 100%; border-collapse: collapse; font-size: .87rem; }
+.stats-table th { background: #f0f4f1; color: var(--muted); font-weight: 600; font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; padding: .5rem 1rem; text-align: left; border-bottom: 1px solid var(--border); }
+.stats-table td { padding: .55rem 1rem; border-bottom: 1px solid var(--border); }
+.stats-table tbody tr:last-child td { border-bottom: none; }
+.stats-table tbody tr:hover { background: var(--green-light); }
+.stats-pct-bar   { display: flex; align-items: center; gap: 8px; }
+.stats-pct-track { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; max-width: 120px; }
+.stats-pct-fill  { height: 100%; background: var(--green-mid); border-radius: 3px; }
+.empty-msg { text-align: center; padding: 2rem 1rem; color: var(--muted); font-size: .9rem; }
+
+@media (max-width: 600px) {
+  .podium { gap: .4rem; }
+  .podium-card { padding: .9rem .6rem .9rem; }
+  .podium-card.rank-1 { transform: translateY(-8px); }
+  .podium-points { font-size: 1.5rem; }
+  .podium-name { font-size: .85rem; }
+  .container { padding: 1rem .75rem; }
+  .site-header h1 { font-size: 1rem; }
+  .champion-grid { grid-template-columns: 1fr; }
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 400px) { .stats-grid { grid-template-columns: 1fr; } }
+
+footer { text-align: center; font-size: .78rem; color: var(--muted); padding: 1.5rem 1rem; border-top: 1px solid var(--border); margin-top: 2rem; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <img src="logo_HP_Electric_Blue_keyline.png" alt="HP" />
+  <div>
+    <h1>Tipovací soutěž – MS ve fotbale 2026 ⚽</h1>
+    <p>Živé pořadí na základě výsledků zápasů</p>
+  </div>
+</header>
+
+<div class="status-bar">
+  <div class="status-item">⚽ <strong>Odehráno:</strong>&nbsp;<span id="gamesPlayed">0</span>&nbsp;/&nbsp;<span id="gamesTotal">0</span>&nbsp;zápasů</div>
+  <div class="status-item">🕐 <strong>Aktualizováno:</strong>&nbsp;<span id="lastUpdated">–</span></div>
+  <button class="btn-refresh" id="refresh">↻ Aktualizovat</button>
+</div>
+
+<nav class="tab-nav" role="tablist">
+  <button class="tab-btn active" data-tab="poradi"     role="tab" aria-selected="true">🏆 Aktuální pořadí</button>
+  <button class="tab-btn"        data-tab="tipy"       role="tab">📋 Tipy hráčů</button>
+  <button class="tab-btn"        data-tab="vitez"      role="tab">🌍 Vítěz MS</button>
+  <button class="tab-btn"        data-tab="statistiky" role="tab">📊 Statistiky</button>
+</nav>
+
+<main>
+  <section class="tab-panel active" id="panel-poradi" role="tabpanel">
+    <div class="container">
+      <p class="section-title">🏆 Aktuální pořadí</p>
+      <div class="podium" id="podium"></div>
+      <div id="leaderboard-rest"></div>
+    </div>
+  </section>
+
+  <section class="tab-panel" id="panel-tipy" role="tabpanel">
+    <div class="container">
+      <p class="section-title">📋 Tipy hráčů</p>
+      <div class="tips-controls">
+        <label for="playerSelect1">Hráč 1:</label>
+        <select id="playerSelect1"></select>
+        <label for="playerSelect2">Hráč 2:</label>
+        <select id="playerSelect2"></select>
+        <button class="btn" id="compareButton">Zobrazit</button>
+        <button class="btn btn-secondary" id="showAllPlayers">Zobrazit všechny</button>
+      </div>
+      <div class="table-scroll-wrapper">
+        <table id="tipsTable">
+          <thead><tr id="tipsHeader"></tr></thead>
+          <tbody id="tipsBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="tab-panel" id="panel-vitez" role="tabpanel">
+    <div class="container">
+      <p class="section-title">🌍 Tipovaný vítěz MS</p>
+      <div class="champion-grid" id="championGrid"></div>
+    </div>
+  </section>
+
+  <section class="tab-panel" id="panel-statistiky" role="tabpanel">
+    <div class="container">
+      <p class="section-title">📊 Statistiky</p>
+      <div id="statsContent"><p class="empty-msg">⏳ Statistiky se naplní po odehrání prvních zápasů.</p></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  Data čerpána z <a href="https://worldcup26.ir" target="_blank" rel="noopener">worldcup26.ir</a> · primární zdroj: <code>games.json</code>
+</footer>
+
+<script>
+'use strict';
+/* ── Config ─────────────────────────────────────────────── */
+const basePoints        = 1;
+const bonusPoints       = 2;
+const winnerBonusPoints = 10;
+let actualChampion = null;
+
+const stadiumTimeOffsets = {
+  1:8,2:8,3:8,4:7,5:7,6:7,7:6,8:6,9:6,10:6,11:6,12:6,13:9,14:9,15:9,16:9
+};
+
+const championPredictions = {
+  "Pavel Machovsky":"Argentina","David Machovsly":"Spain","Vitek Slunecko":"Netherlands",
+  "Olda Cervinka":"France","Karel Klima":"England","Darek Nestak":"France",
+  "Vit Vevericik":"Spain","Jan Cejchan":"England","Jan Satra":"England",
+  "Marek Machovsky":"Portugal","Honza Horáček":"Spain","Stepan Ruzicka":"Brazil",
+  "Kuba Kriz":"Argentina","Starky":"Spain","Matus Lazovsky":"Argentina",
+  "Kuba Neužil":"Netherlands","David Filgas":"France","Standa Jambor":"Spain",
+  "Jachym Jakimeczko":"Portugal","Filip Podlipny":"Portugal","Standa Silhavy":"France",
+  "David Nestak":"Spain","Honza Novak":"France","Jirka Nyvlt":"Brazil",
+  "Hardy Pavlicek":"Spain","Matej Chalupka":"Brazil","Vašek Stach":"Brazil",
+  "Martin Souček":"Spain","Mike Dallal":"Spain"
+};
+
+let players    = [];
+let gamesCache = [];
+
+/* ── Tab navigation ─────────────────────────────────────── */
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected','false'); });
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    btn.setAttribute('aria-selected','true');
+    document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
+  });
+});
+
+/* ── Helpers ────────────────────────────────────────────── */
+function outcome(h,a){ return h>a?'1':h<a?'2':'0'; }
+
+function isFinished(g){
+  const f=g.finished;
+  return g._finished===true||(typeof f==='string'&&f.toUpperCase()==='TRUE')||f===true;
+}
+
+function normalizeGames(raw){
+  return raw.map(g=>({
+    ...g,
+    _finished:  isFinished(g),
+    home_score: g.home_score??'0',
+    away_score: g.away_score??'0',
+  }));
+}
+
+function formatKickoff(local_date,stadiumId){
+  if(!local_date)return '';
+  const[dp,tp]=local_date.split(' ');
+  if(!dp||!tp)return local_date;
+  const[mo,da,yr]=dp.split('/').map(Number);
+  const[hr,mi]  =tp.split(':').map(Number);
+  const d=new Date(yr,mo-1,da,hr,mi);
+  d.setHours(d.getHours()+(stadiumTimeOffsets[parseInt(stadiumId)]||0));
+  const wd=d.toLocaleDateString('cs-CZ',{weekday:'long',timeZone:'Europe/Prague'});
+  const dm=d.toLocaleDateString('cs-CZ',{day:'numeric',month:'numeric',timeZone:'Europe/Prague'}).replace(/\s+/g,'');
+  const tm=d.toLocaleTimeString('cs-CZ',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'Europe/Prague'});
+  return `${wd} ${dm} ${tm}`;
+}
+
+function assignChampionPredictions(){
+  players.forEach(p=>{ p.predictedChampion=championPredictions[p.name]||null; });
+}
+
+/* ── Score calculation ──────────────────────────────────── */
+function calculateScores(finishedGames){
+  const results={};
+  finishedGames.forEach(g=>{ results[g.id]={home:parseInt(g.home_score,10),away:parseInt(g.away_score,10)}; });
+
+  const board=players.map(player=>{
+    let points=0,exactCount=0,correctCount=0;
+    Object.keys(results).forEach(id=>{
+      const actual=results[id];
+      const pred=player.predictions[id];
+      if(!pred)return;
+      if(outcome(pred.home,pred.away)===outcome(actual.home,actual.away)){ points+=basePoints; correctCount++; }
+      if(pred.home===actual.home&&pred.away===actual.away){ points+=bonusPoints; exactCount++; }
+    });
+    let champBonus=0;
+    if(actualChampion&&player.predictedChampion===actualChampion) champBonus=winnerBonusPoints;
+    const total=Object.keys(results).filter(id=>player.predictions[id]).length;
+    const pct=total>0?Math.round(correctCount/total*100):0;
+    return {name:player.name,points:points+champBonus,exactCount,correctCount,champBonus,predictedChampion:player.predictedChampion,total,pct};
+  });
+
+  board.sort((a,b)=>b.points-a.points||b.exactCount-a.exactCount);
+  renderLeaderboard(board);
+  renderStats(board,finishedGames);
+}
+
+/* ── Render: Leaderboard ────────────────────────────────── */
+function renderLeaderboard(data){
+  const medals=['🥇','🥈','🥉'];
+  const rankCls=['rank-1','rank-2','rank-3'];
+
+  // Podium – order: 2nd left, 1st centre, 3rd right
+  const podiumEl=document.getElementById('podium');
+  podiumEl.innerHTML='';
+  const top=data.slice(0,3);
+  const order=top.length>=3?[top[1],top[0],top[2]]:top;
+  order.forEach(player=>{
+    const ri=data.indexOf(player);
+    const card=document.createElement('div');
+    card.className=`podium-card ${rankCls[ri]||''}`;
+    card.innerHTML=`
+      <div class="podium-medal">${medals[ri]||''}</div>
+      <div class="podium-name">${player.name}</div>
+      <div class="podium-points">${player.points}</div>
+      <div class="podium-points-label">bodů</div>
+      <div class="podium-exact">🎯 ${player.exactCount} přesných</div>`;
+    podiumEl.appendChild(card);
+  });
+
+  // Table from 4th place
+  const rest=document.getElementById('leaderboard-rest');
+  if(data.length<=3){rest.innerHTML='';return;}
+  const tbl=document.createElement('table');
+  tbl.className='leaderboard-table';
+  tbl.innerHTML=`<thead><tr><th>#</th><th>Hráč</th><th>🎯 Přesné</th><th>✓ Správné</th><th>Body</th></tr></thead>`;
+  const tb=document.createElement('tbody');
+  data.slice(3).forEach((p,i)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td class="lb-rank">${i+4}</td><td class="lb-name">${p.name}</td><td>${p.exactCount}</td><td>${p.correctCount}</td><td class="lb-pts">${p.points}</td>`;
+    tb.appendChild(tr);
+  });
+  tbl.appendChild(tb);
+  rest.innerHTML='';
+  rest.appendChild(tbl);
+}
+
+/* ── Render: Tips table ─────────────────────────────────── */
+function buildTipsTable(games,playersToShow){
+  const hdr=document.getElementById('tipsHeader');
+  const bdy=document.getElementById('tipsBody');
+  hdr.innerHTML=''; bdy.innerHTML='';
+
+  const thM=document.createElement('th'); thM.textContent='Zápas'; hdr.appendChild(thM);
+  const thR=document.createElement('th'); thR.textContent='Výsledek / výkop'; hdr.appendChild(thR);
+  playersToShow.forEach(p=>{ const th=document.createElement('th'); th.textContent=p.name; hdr.appendChild(th); });
+
+  games.forEach(game=>{
+    const tr=document.createElement('tr');
+    const hn=game.home_team_name_en||game.home_team_name||game.home||'';
+    const an=game.away_team_name_en||game.away_team_name||game.away||'';
+    const fin=isFinished(game);
+    const tdM=document.createElement('td'); tdM.textContent=`${hn} vs ${an}`; tr.appendChild(tdM);
+    const tdR=document.createElement('td');
+    if(fin){ tdR.textContent=`${game.home_score}:${game.away_score}`; tdR.style.fontWeight='700'; }
+    else   { tdR.textContent=formatKickoff(game.local_date,game.stadium_id)||''; tdR.style.color='var(--muted)'; }
+    tr.appendChild(tdR);
+
+    playersToShow.forEach(player=>{
+      const td=document.createElement('td');
+      const pred=player.predictions[game.id];
+      if(!pred){td.className='cell-unplayed';td.textContent='–';tr.appendChild(td);return;}
+      td.textContent=`${pred.home}:${pred.away}`;
+      if(fin){
+        const ao=outcome(parseInt(game.home_score,10),parseInt(game.away_score,10));
+        const po=outcome(pred.home,pred.away);
+        if(pred.home===parseInt(game.home_score,10)&&pred.away===parseInt(game.away_score,10)) td.className='cell-exact';
+        else if(po===ao) td.className='cell-correct';
+        else td.className='cell-wrong';
+      } else { td.className='cell-unplayed'; }
+      tr.appendChild(td);
+    });
+    bdy.appendChild(tr);
+  });
+}
+
+function renderTipsComparison(p1Name,p2Name){
+  const p1=players.find(p=>p.name===p1Name); if(!p1)return;
+  const p2=p2Name?players.find(p=>p.name===p2Name):null;
+  buildTipsTable(gamesCache.filter(g=>g.type==='group'),p2?[p1,p2]:[p1]);
+}
+function renderAllTips(){
+  buildTipsTable(gamesCache.filter(g=>g.type==='group'),players);
+}
+
+/* ── Render: Champion grid ──────────────────────────────── */
+function renderChampionGrid(){
+  const grid=document.getElementById('championGrid');
+  grid.innerHTML='';
+  const stats={};
+  players.forEach(p=>{
+    const c=p.predictedChampion; if(!c)return;
+    if(!stats[c])stats[c]={count:0,players:[]};
+    stats[c].count++; stats[c].players.push(p.name);
+  });
+  const teamGames={};
+  gamesCache.filter(g=>g.type==='group').forEach(g=>{
+    const h=g.home_team_name_en||g.home_team_name||'';
+    const a=g.away_team_name_en||g.away_team_name||'';
+    [h,a].forEach(t=>{ if(!teamGames[t])teamGames[t]=[]; teamGames[t].push(g); });
+  });
+  Object.keys(stats).sort((a,b)=>stats[b].count-stats[a].count).forEach(team=>{
+    const{count,players:list}=stats[team];
+    const matchRows=(teamGames[team]||[]).map(g=>{
+      const h=g.home_team_name_en||g.home_team_name||'';
+      const a=g.away_team_name_en||g.away_team_name||'';
+      const fin=isFinished(g);
+      const isHome=h===team;
+      const opp=isHome?a:h;
+      let scoreHtml='';
+      if(fin){
+        const hs=parseInt(g.home_score,10),as=parseInt(g.away_score,10);
+        const ts=isHome?hs:as,os=isHome?as:hs;
+        const cls=ts>os?'score-win':ts<os?'score-loss':'score-draw';
+        scoreHtml=`<span class="score ${cls}">${ts}:${os}</span>`;
+      } else {
+        scoreHtml=`<span class="score score-tbd">${formatKickoff(g.local_date,g.stadium_id)||'TBD'}</span>`;
+      }
+      return `<div class="match-row-mini"><span class="teams">vs ${opp}</span>${scoreHtml}</div>`;
+    }).join('');
+    const card=document.createElement('div'); card.className='champion-card';
+    const votes=count===1?'1 tip':count<5?`${count} tipy`:`${count} tipů`;
+    card.innerHTML=`
+      <div class="champion-card-header">
+        <span class="champion-team">🏳️ ${team}</span>
+        <span class="champion-votes">${votes}</span>
+      </div>
+      <div class="champion-card-body">
+        <div class="champion-players">${list.join(', ')}</div>
+        ${matchRows?`<div class="champion-matches">${matchRows}</div>`:''}
+      </div>`;
+    grid.appendChild(card);
+  });
+}
+
+/* ── Render: Statistics ─────────────────────────────────── */
+function computeStreak(preds,sortedGames,mode){
+  let max=0,cur=0;
+  sortedGames.forEach(g=>{
+    const pred=preds[g.id];
+    if(!pred){cur=0;return;}
+    const hs=parseInt(g.home_score,10),as=parseInt(g.away_score,10);
+    const hit=mode==='exact'
+      ?(pred.home===hs&&pred.away===as)
+      :(outcome(pred.home,pred.away)===outcome(hs,as));
+    if(hit){cur++;if(cur>max)max=cur;}else cur=0;
+  });
+  return max;
+}
+
+function renderStats(board,finishedGames){
+  const el=document.getElementById('statsContent');
+  if(!finishedGames||finishedGames.length===0){
+    el.innerHTML='<p class="empty-msg">⏳ Statistiky se naplní po odehrání prvních zápasů.</p>';
+    return;
+  }
+  const sorted=finishedGames.slice().sort((a,b)=>parseInt(a.id)-parseInt(b.id));
+  const ps=players.map(p=>({
+    name:       p.name,
+    streak:     computeStreak(p.predictions,sorted,'correct'),
+    eStreak:    computeStreak(p.predictions,sorted,'exact'),
+    total:      sorted.filter(g=>p.predictions[g.id]).length,
+    correct:    sorted.filter(g=>{const pr=p.predictions[g.id];return pr&&outcome(pr.home,pr.away)===outcome(parseInt(g.home_score,10),parseInt(g.away_score,10));}).length,
+    exact:      sorted.filter(g=>{const pr=p.predictions[g.id];return pr&&pr.home===parseInt(g.home_score,10)&&pr.away===parseInt(g.away_score,10);}).length,
+  })).map(p=>({...p,pct:p.total>0?Math.round(p.correct/p.total*100):0}));
+
+  const bestStreak =[...ps].sort((a,b)=>b.streak -a.streak )[0];
+  const bestEStreak=[...ps].sort((a,b)=>b.eStreak-a.eStreak)[0];
+  const bestExact  =[...ps].sort((a,b)=>b.exact  -a.exact  )[0];
+  const bestPct    =[...ps].sort((a,b)=>b.pct    -a.pct    )[0];
+
+  const cards=`<div class="stats-grid">
+    <div class="stat-card"><div class="stat-card-label">🔥 Nejdelší série správných tipů</div><div class="stat-card-value">${bestStreak.streak}</div><div class="stat-card-sub">${bestStreak.name}</div></div>
+    <div class="stat-card"><div class="stat-card-label">⚡ Nejdelší série přesných tipů</div><div class="stat-card-value">${bestEStreak.eStreak}</div><div class="stat-card-sub">${bestEStreak.name}</div></div>
+    <div class="stat-card"><div class="stat-card-label">🎯 Nejvíce přesných skóre</div><div class="stat-card-value">${bestExact.exact}</div><div class="stat-card-sub">${bestExact.name}</div></div>
+    <div class="stat-card"><div class="stat-card-label">📈 Nejlepší úspěšnost</div><div class="stat-card-value">${bestPct.pct}%</div><div class="stat-card-sub">${bestPct.name} (${bestPct.correct}/${bestPct.total})</div></div>
+  </div>`;
+
+  const rows=[...ps].sort((a,b)=>b.pct-a.pct||b.exact-a.exact).map(p=>`<tr>
+    <td>${p.name}</td><td>${p.exact}</td><td>${p.correct}/${p.total}</td>
+    <td><div class="stats-pct-bar"><div class="stats-pct-track"><div class="stats-pct-fill" style="width:${p.pct}%"></div></div><span>${p.pct}%</span></div></td>
+    <td>${p.streak}</td>
+  </tr>`).join('');
+
+  el.innerHTML=cards+`<div class="stats-table-wrap">
+    <div class="stats-table-title">Detailní přehled hráčů</div>
+    <table class="stats-table">
+      <thead><tr><th>Hráč</th><th>🎯 Přesná skóre</th><th>✓ Správné výsledky</th><th>📈 Úspěšnost</th><th>🔥 Max. série</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>`;
+}
+
+/* ── Data loading ───────────────────────────────────────── */
+async function loadPlayers(){
+  try{
+    const r=await fetch('players_predictions_mapped_plus2.json');
+    players=await r.json();
+    assignChampionPredictions();
+  }catch(e){ console.error('Tipy se nepodařilo načíst:',e); alert('Tipy se nepodařilo načíst.'); }
+}
+
+async function loadGames(){
+  try{
+    const r=await fetch('games.json');
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const d=await r.json();
+    gamesCache=normalizeGames(d.games||d);
+  }catch(e){ console.warn('games.json:',e); gamesCache=[]; }
+}
+
+function renderAll(){
+  const fin=gamesCache.filter(g=>isFinished(g));
+  const total=gamesCache.filter(g=>g.type==='group').length||gamesCache.length;
+  document.getElementById('gamesPlayed').textContent=fin.length;
+  document.getElementById('gamesTotal').textContent=total;
+  document.getElementById('lastUpdated').textContent=new Date().toLocaleString('cs-CZ');
+  calculateScores(fin);
+  renderChampionGrid();
+  renderAllTips();
+}
+
+function populatePlayerSelects(){
+  ['playerSelect1','playerSelect2'].forEach(id=>{
+    const sel=document.getElementById(id);
+    sel.innerHTML='<option value="">Vyberte hráče…</option>';
+    players.forEach(p=>{ const o=document.createElement('option'); o.value=o.textContent=p.name; sel.appendChild(o); });
+  });
+}
+
+async function fetchGames(){
+  const btn=document.getElementById('refresh');
+  btn.disabled=true;
+  await loadGames();
+  renderAll();
+  try{
+    const r=await fetch('https://worldcup26.ir/get/games');
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const d=await r.json();
+    const ag=normalizeGames(d.games||d);
+    if(ag.length>0){ gamesCache=ag; renderAll(); }
+  }catch(e){ console.warn('Live API nedostupné:',e.message); }
+  btn.disabled=false;
+}
+
+/* ── Event listeners ────────────────────────────────────── */
+document.getElementById('refresh').addEventListener('click', fetchGames);
+document.getElementById('compareButton').addEventListener('click',()=>{
+  const p1=document.getElementById('playerSelect1').value;
+  const p2=document.getElementById('playerSelect2').value;
+  if(p1) renderTipsComparison(p1,p2||null);
+});
+document.getElementById('showAllPlayers').addEventListener('click', renderAllTips);
+
+/* ── Init ───────────────────────────────────────────────── */
+async function init(){
+  await loadPlayers();
+  populatePlayerSelects();
+  await fetchGames();
+}
+init();
+</script>
+</body>
+</html>
