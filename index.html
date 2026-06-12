@@ -9,10 +9,6 @@
    DESIGN TOKENS
 ═══════════════════════════════════════════════════════ */
 
-/* ═══════════════════════════════════════════════════════
-   THIS IS TEST
-═══════════════════════════════════════════════════════ */
-
 :root {
   --gd:  #0a4a2a;
   --gm:  #1a7a42;
@@ -1002,7 +998,7 @@ async function loadGames() {
 }
 
 function renderAll() {
-  const fin   = gamesCache.filter(g => isFinished(g));
+  const fin   = gamesCache.filter(g => isFin(g));
   const total = gamesCache.filter(g => g.type === 'group').length || gamesCache.length;
   document.getElementById('gamesPlayed').textContent = fin.length;
   document.getElementById('gamesTotal').textContent  = total;
