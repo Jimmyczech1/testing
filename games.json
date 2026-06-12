@@ -57,9 +57,9 @@
       "awayTeam": "Scotland",
       "kickoff": "2026-06-13 21:00",
       "stadiumId": "9",
-      "finished": false,
-      "homeScore": null,
-      "awayScore": null
+      "finished": true,
+      "homeScore": 1,
+      "awayScore": 1
     },
     {
       "id": "6",
@@ -69,9 +69,9 @@
       "awayTeam": "Turkey",
       "kickoff": "2026-06-13 21:00",
       "stadiumId": "13",
-      "finished": false,
-      "homeScore": null,
-      "awayScore": null
+      "finished": true,
+      "homeScore": 2,
+      "awayScore": 1l
     },
     {
       "id": "7",
